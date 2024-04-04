@@ -7,6 +7,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -48,7 +51,19 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Password not match");
             }
+
+            setAuthentication(user);
         }
+    }
+
+    private void setAuthentication(User user) {
+        Authentication authentication = createAuthenticationToken(user);
+        SecurityContextHolder.getContext().setAuthentication((authentication));
+    }
+
+    private Authentication createAuthenticationToken(User user) {
+        UserPrincipal userPrincipal = UserPrincipal.create(user);
+        return new UsernamePasswordAuthenticationToken(userPrincipal, null, userPrincipal.getAuthorities());
     }
 
     private boolean checkPassword(String userPassword, String loginPassword) {
