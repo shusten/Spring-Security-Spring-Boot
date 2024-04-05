@@ -37,7 +37,7 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
             String username = credentials[0];
             String password = credentials [1];
 
-            User user = userRepository.findByUsername(username);
+            User user = userRepository.findByUsernameFetchRoles(username);
 
             if(user == null) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -54,6 +54,8 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
 
             setAuthentication(user);
         }
+
+        filterChain.doFilter(request, response);
     }
 
     private void setAuthentication(User user) {
