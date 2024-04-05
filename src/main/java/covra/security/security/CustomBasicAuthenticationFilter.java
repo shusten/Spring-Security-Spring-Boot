@@ -25,21 +25,22 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
     private static final String BASIC = "Basic ";
     private final UserRepository userRepository;
 
-    public PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(isBasicAuthentication(request)) {
+        if(isBasicAuthentication(request)){
             String[] credentials = decodeBase64(getHeader(request).replace(BASIC, ""))
                     .split(":");
+
             String username = credentials[0];
-            String password = credentials [1];
+            String password = credentials[1];
 
             User user = userRepository.findByUsernameFetchRoles(username);
 
-            if(user == null) {
+            if(user == null){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("User does not exist!");
                 return;
@@ -50,6 +51,7 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
             if(!valid){
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Password not match");
+                return;
             }
 
             setAuthentication(user);
@@ -60,7 +62,7 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
 
     private void setAuthentication(User user) {
         Authentication authentication = createAuthenticationToken(user);
-        SecurityContextHolder.getContext().setAuthentication((authentication));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private Authentication createAuthenticationToken(User user) {
@@ -69,7 +71,7 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean checkPassword(String userPassword, String loginPassword) {
-        return passwordEncoder().matches(userPassword, loginPassword);
+        return passwordEncoder().matches(loginPassword, userPassword);
     }
 
     private String decodeBase64(String base64) {
