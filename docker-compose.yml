@@ -6,7 +6,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/CLIENT
       SPRING_DATASOURCE_USERNAME: root
@@ -14,23 +15,30 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
     volumes:
-      - ./src:/app/src  # Monta o diretório local `src` no container
-      - ./target:/app/target  # Monta o diretório de build no container
+      - ./src:/app/src
+      - ./target:/app/target
 
   db:
     image: mysql:8
     volumes:
       - dbbase:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - 3336:3306
+      - "3336:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: CLIENT
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
 
   phpmyadmin:
     image: phpmyadmin
     ports:
-      - 8082:80
+      - "8082:80"
     environment:
       PMA_HOST: db
       MYSQL_ROOT_PASSWORD: 123456
