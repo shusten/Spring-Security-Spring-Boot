@@ -13,6 +13,9 @@ services:
       SPRING_DATASOURCE_PASSWORD: 123456
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+    volumes:
+      - ./src:/app/src  # Monta o diretório local `src` no container
+      - ./target:/app/target  # Monta o diretório de build no container
 
   db:
     image: mysql:8
